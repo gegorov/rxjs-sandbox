@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/gegorov/rxjs-sandbox#readme",
   "dependencies": {
+    "dotenv": "^8.1.0",
+    "dotenv-webpack": "^1.7.0",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {

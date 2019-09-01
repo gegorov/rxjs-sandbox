@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 
 
@@ -33,6 +34,7 @@ module.exports = {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new CleanWebpackPlugin(),
+    new Dotenv(),
   ],
 
   module: {
