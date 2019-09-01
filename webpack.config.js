@@ -5,10 +5,13 @@ const TerserPlugin = require('terser-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
 const path = require('path');
 
+const VENDOR_LIBS = ['rxjs'];
 
 module.exports = {
-  entry: './src/index.js',
-
+  entry: {
+    bundle: './src/index.js',
+    vendor: VENDOR_LIBS,
+  },
   output: {
     path: path.resolve(__dirname, 'public'),
     filename: '[name].[hash].js',
