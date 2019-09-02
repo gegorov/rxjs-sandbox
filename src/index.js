@@ -1,36 +1,51 @@
-import { of } from 'rxjs';
+import { of, fromEvent } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
-import { switchMap, catchError } from 'rxjs/operators';
+import {
+  switchMap,
+  catchError,
+  tap,
+  map,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 
-import { addItem } from './helpers';
+import { addItem, clearItems, handleWrongQueries } from './helpers';
 import { API_URL } from './constants';
 
 const token = process.env.GITHUB_TOKEN;
 
 
 const root = document.getElementById('root');
-const query = 'geg';
+const searchInput = document.getElementById('searchInput');
 
-const data$ = fromFetch(`${API_URL}/search/users?q=${query}+in:login&access_token=${token}`)
+const fetchData = (query) => {
+  handleWrongQueries(query, root);
+  return fromFetch(`${API_URL}/search/users?q=${query}+in:login&access_token=${token}`)
+    .pipe(
+      switchMap((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        return of({ error: true, message: `Error ${response.status}` });
+      }),
+      catchError((err) => of({ error: true, message: err.message })),
+    );
+};
+
+
+const stream$ = fromEvent(searchInput, 'input')
   .pipe(
-    switchMap((response) => {
-      if (response.ok) {
-        // OK return data
-        return response.json();
-      }
-      // Server is returning a status requiring the client to try something else.
-      return of({ error: true, message: `Error ${response.status}` });
-    }),
-    catchError((err) => {
-      // Network or other error, handle appropriately
-      console.error(err);
-      return of({ error: true, message: err.message });
+    tap(() => clearItems(root)),
+    debounceTime(200),
+    map((event) => event.target.value),
+    debounceTime(200),
+    distinctUntilChanged(),
+    switchMap(fetchData),
+    catchError((err) => of({ error: true, message: err.message })),
+    tap(({ items = [] }) => {
+      items.map(({ login, id }) => addItem(root, `login: ${login}, id: ${id}`));
     }),
   );
 
-data$.subscribe({
-  next: (result) => result.items.map(
-    ({ login, id, score }) => addItem(root, `username: ${login}, id: ${id}, score: ${score}`),
-  ),
-  complete: () => console.log('done'),
-});
+
+stream$.subscribe();
