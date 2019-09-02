@@ -75,7 +75,9 @@ const stream$ = fromEvent(searchInput, 'input')
         switchMap(({ items: users }) => processUsers(users)),
         tap((items) => console.log('processed users:', items)),
         catchError((err) => of({ error: true, message: err.message })),
-        tap((item) => console.log('loging new stuf', item)),
+        tap((items) => items.map(
+            ({ login, public_repos: reposCount }) => addItem(root, `GitHub login: ${login}, repos count: ${reposCount}`),
+        )),
     );
 
 stream$.subscribe();
