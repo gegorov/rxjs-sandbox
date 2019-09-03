@@ -2,8 +2,7 @@ import { of } from 'rxjs';
 
 import { API_URL, ERROR_CSS_CLASS } from './constants';
 
-const token = process.env.GITHUB_TOKEN;
-
+const TOKEN = process.env.GITHUB_TOKEN;
 
 export const addItem = (node, item, error) => {
     const li = document.createElement('li');
@@ -36,4 +35,6 @@ export const handleEmptyQuery = (root) => {
     return of({ error: true, message: 'empty input' });
 };
 
-export const urlBuilder = (query) => `${API_URL}/search/users?q=${query}+in:login&access_token=${token}`;
+export const urlBuilder = (query) => `${API_URL}/search/users?q=${query}+in:login&access_token=${TOKEN}`;
+
+export const urlBuilderRepo = (login) => `${API_URL}/users/${login}?&access_token=${TOKEN}`;

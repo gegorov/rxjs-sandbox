@@ -1,4 +1,4 @@
-import { of, fromEvent } from 'rxjs';
+import { of, fromEvent, zip } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 import {
     switchMap,
@@ -15,6 +15,7 @@ import {
     handleWrongQueries,
     handleEmptyQuery,
     urlBuilder,
+    urlBuilderRepo,
 } from './helpers';
 import { DEBOUNCING_TIME } from './constants';
 
@@ -40,6 +41,28 @@ const fetchData = (query) => {
         );
 };
 
+const fetchUserData = (login) => {
+    if (!login) {
+        return handleEmptyQuery(root);
+    }
+    handleWrongQueries(login, root);
+    return fromFetch(urlBuilderRepo(login))
+        .pipe(
+            switchMap((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return of({ error: true, message: `Error ${response.status}` });
+            }),
+            catchError((err) => of({ error: true, message: err.message })),
+        );
+};
+
+const processUsers = (users) => {
+    const userReposArray = users.map(({ login }) => fetchUserData(login));
+    return zip(...userReposArray);
+};
+
 
 const stream$ = fromEvent(searchInput, 'input')
     .pipe(
@@ -48,11 +71,14 @@ const stream$ = fromEvent(searchInput, 'input')
         map((event) => event.target.value),
         distinctUntilChanged(),
         switchMap(fetchData),
+        switchMap(({ items: users }) => processUsers(users)),
         catchError((err) => of({ error: true, message: err.message })),
-        tap(({ items = [] }) => {
-            items.map(({ login, id }) => addItem(root, `login: ${login}, id: ${id}`));
-        }),
+        tap((items) => items.map(
+            ({ login, public_repos: reposCount }) => {
+                const item =  `GitHub login: ${login}, repos count: ${reposCount}`;
+                addItem(root, item);
+            },
+        )),
     );
-
 
 stream$.subscribe();
