@@ -38,4 +38,4 @@ export const handleEmptyQuery = (root) => {
 
 export const urlBuilder = (query) => `${API_URL}/search/users?q=${query}+in:login&access_token=${token}`;
 
-export const urlBulderRepo = (login) => `${API_URL}/users/${login}`;
+export const urlBulderRepo = (login) => `${API_URL}/users/${login}?&access_token=${token}`;
