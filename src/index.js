@@ -15,7 +15,7 @@ import {
     handleWrongQueries,
     handleEmptyQuery,
     urlBuilder,
-    urlBulderRepo,
+    urlBuilderRepo,
 } from './helpers';
 import { DEBOUNCING_TIME } from './constants';
 
@@ -46,7 +46,7 @@ const fetchUserData = (login) => {
         return handleEmptyQuery(root);
     }
     handleWrongQueries(login, root);
-    return fromFetch(urlBulderRepo(login))
+    return fromFetch(urlBuilderRepo(login))
         .pipe(
             switchMap((response) => {
                 if (response.ok) {
@@ -71,12 +71,13 @@ const stream$ = fromEvent(searchInput, 'input')
         map((event) => event.target.value),
         distinctUntilChanged(),
         switchMap(fetchData),
-        tap((items) => console.log('first fetch :', items)),
         switchMap(({ items: users }) => processUsers(users)),
-        tap((items) => console.log('processed users:', items)),
         catchError((err) => of({ error: true, message: err.message })),
         tap((items) => items.map(
-            ({ login, public_repos: reposCount }) => addItem(root, `GitHub login: ${login}, repos count: ${reposCount}`),
+            ({ login, public_repos: reposCount }) => {
+                const item =  `GitHub login: ${login}, repos count: ${reposCount}`;
+                addItem(root, item);
+            },
         )),
     );
 
